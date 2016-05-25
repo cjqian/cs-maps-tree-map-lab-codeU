@@ -20,215 +20,288 @@ import java.util.Set;
  */
 public class MyTreeMap<K, V> implements Map<K, V> {
 
-	private int size = 0;
-	private Node root = null;
+    private int size = 0;
+    private Node root = null;
 
-	/**
-	 * Represents a node in the tree.
-	 *
-	 */
-	protected class Node {
-		public K key;
-		public V value;
-		public Node left = null;
-		public Node right = null;
-		
-		/**
-		 * @param key
-		 * @param value
-		 * @param left
-		 * @param right
-		 */
-		public Node(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
-	}
-		
-	@Override
-	public void clear() {
-		size = 0;
-		root = null;
-	}
+    /**
+     * Represents a node in the tree.
+     *
+     */
+    protected class Node {
+        public K key;
+        public V value;
+        public Node left = null;
+        public Node right = null;
 
-	@Override
-	public boolean containsKey(Object target) {
-		return findNode(target) != null;
-	}
+        /**
+         * @param key
+         * @param value
+         * @param left
+         * @param right
+         */
+        public Node(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
 
-	/**
-	 * Returns the entry that contains the target key, or null if there is none. 
-	 * 
-	 * @param target
-	 */
-	private Node findNode(Object target) {
-		// some implementations can handle null as a key, but not this one
-		if (target == null) {
+    @Override
+    public void clear() {
+        size = 0;
+        root = null;
+    }
+
+    @Override
+    public boolean containsKey(Object target) {
+        return findNode(target) != null;
+    }
+
+    /**
+     * Returns the entry that contains the target key, or null if there is none. 
+     * 
+     * @param target
+     */
+    private Node findNode(Object target) {
+        // some implementations can handle null as a key, but not this one
+        if (target == null) {
             throw new NullPointerException();
-	    }
-		
-		// something to make the compiler happy
-		@SuppressWarnings("unchecked")
-		Comparable<? super K> k = (Comparable<? super K>) target;
-		
-		// the actual search
-        // TODO: Fill this in.
-        return null;
-	}
+        }
 
-	/**
-	 * Compares two keys or two values, handling null correctly.
-	 * 
-	 * @param target
-	 * @param obj
-	 * @return
-	 */
-	private boolean equals(Object target, Object obj) {
-		if (target == null) {
-			return obj == null;
-		}
-		return target.equals(obj);
-	}
+        // something to make the compiler happy
+        @SuppressWarnings("unchecked")
+        Comparable<? super K> k = (Comparable<? super K>) target;
 
-	@Override
-	public boolean containsValue(Object target) {
-		return false;
-	}
+        // the actual search
+        Node curNode = root;
+        while (curNode!= null){
+            //if the key matches our target, we're done!
+            if (equals(curNode.key, target)) return curNode;
 
-	@Override
-	public Set<Map.Entry<K, V>> entrySet() {
-		throw new UnsupportedOperationException();
-	}
+            //if less, check left
+            else if (k.compareTo(curNode.key) < 0) curNode = curNode.left;
 
-	@Override
-	public V get(Object key) {
-		Node node = findNode(key);
-		if (node == null) {
-			return null;
-		}
-		return node.value;
-	}
+            //then, geq so check right
+            else curNode = curNode.right;
+        }
 
-	@Override
-	public boolean isEmpty() {
-		return size == 0;
-	}
+        return curNode;
+    }
 
-	@Override
-	public Set<K> keySet() {
-		Set<K> set = new LinkedHashSet<K>();
-        // TODO: Fill this in.
-		return set;
-	}
+    /**
+     * Compares two keys or two values, handling null correctly.
+     * 
+     * @param target
+     * @param obj
+     * @return
+     */
+    private boolean equals(Object target, Object obj) {
+        if (target == null) {
+            return obj == null;
+        }
+        return target.equals(obj);
+    }
 
-	@Override
-	public V put(K key, V value) {
-		if (key == null) {
-			throw new NullPointerException();
-		}
-		if (root == null) {
-			root = new Node(key, value);
-			size++;
-			return null;
-		}
-		return putHelper(root, key, value);
-	}
+    //returns whether a tree contains a value
+    private boolean containsValueInTree(Object target, Node root){
+        //if the root is empty, obviously does not contain
+        if (root == null) return false;
 
-	private V putHelper(Node node, K key, V value) {
-        // TODO: Fill this in.
-        return null;
-	}
+        //if the root contains, we're done
+        if (equals(target, root.value)) return true;
 
-	@Override
-	public void putAll(Map<? extends K, ? extends V> map) {
-		for (Map.Entry<? extends K, ? extends V> entry: map.entrySet()) {
-			put(entry.getKey(), entry.getValue());
-		}
-	}
+        //then, we check the subtrees
+        return (containsValueInTree(target, root.left) 
+                || containsValueInTree(target, root.right));
 
-	@Override
-	public V remove(Object key) {
-		throw new UnsupportedOperationException();
-	}
+    }
 
-	@Override
-	public int size() {
-		return size;
-	}
+    @Override
+    public boolean containsValue(Object target) {
+        return containsValueInTree(target, root);
+    }
 
-	@Override
-	public Collection<V> values() {
-		Set<V> set = new HashSet<V>();
-		Deque<Node> stack = new LinkedList<Node>();
-		stack.push(root);
-		while (!stack.isEmpty()) {
-			Node node = stack.pop();
-			if (node == null) continue;
-			set.add(node.value);
-			stack.push(node.left);
-			stack.push(node.right);
-		}
-		return set;
-	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Map<String, Integer> map = new MyTreeMap<String, Integer>();
-		map.put("Word1", 1);
-		map.put("Word2", 2);
-		Integer value = map.get("Word1");
-		System.out.println(value);
-		
-		for (String key: map.keySet()) {
-			System.out.println(key + ", " + map.get(key));
-		}
-	}
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        throw new UnsupportedOperationException();
+    }
 
-	/**
-	 * Makes a node.
-	 * 
-	 * This is only here for testing purposes.  Should not be used otherwise.
-	 * 
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	public MyTreeMap<K, V>.Node makeNode(K key, V value) {
-		return new Node(key, value);
-	}
+    @Override
+    public V get(Object key) {
+        Node node = findNode(key);
+        if (node == null) {
+            return null;
+        }
+        return node.value;
+    }
 
-	/**
-	 * Sets the instance variables.
-	 * 
-	 * This is only here for testing purposes.  Should not be used otherwise.
-	 * 
-	 * @param node
-	 * @param size
-	 */
-	public void setTree(Node node, int size ) {
-		this.root = node;
-		this.size = size;
-	}
+    @Override
+    public boolean isEmpty() {
+        return size == 0;
+    }
 
-	/**
-	 * Returns the height of the tree.
-	 * 
-	 * This is only here for testing purposes.  Should not be used otherwise.
-	 * 
-	 * @return
-	 */
-	public int height() {
-		return heightHelper(root);
-	}
+    //recursively adds the tree with root node to a set
+    private void keySetHelper(Node node, Set<K> set){
+        //if null, done
+        if (node == null) return;
 
-	private int heightHelper(Node node) {
-		if (node == null) {
-			return 0;
-		}
-		int left = heightHelper(node.left);
-		int right = heightHelper(node.right);
-		return Math.max(left, right) + 1;
-	}
+        //else, add the node and add its childre
+        set.add(node.key);
+
+        keySetHelper(node.left, set);
+        keySetHelper(node.right, set);
+    }
+
+    @Override
+    public Set<K> keySet() {
+        //return an implementation of Set that maintains the order of the elements
+        Set<K> set = new LinkedHashSet<K>();
+        keySetHelper(root, set);
+
+        return set;
+    }
+
+    @Override
+    public V put(K key, V value) {
+        if (key == null) {
+            throw new NullPointerException();
+        }
+        if (root == null) {
+            root = new Node(key, value);
+            size++;
+
+            return null;
+        }
+
+        return putHelper(root, key, value);
+    }
+
+    private V putHelperHelper(Node node, K key, V value){
+        if (node == null){
+            node = new Node(key, value);
+            size++;
+            return null;
+        } else 
+            return putHelper(node, key, value);
+    }
+
+    private V putHelper(Node node, K key, V value) {
+        Comparable<? super K> k = (Comparable<? super K>) key;
+
+        if (k.compareTo(node.key) < 0){
+            if (node.left == null){
+                node.left = new Node(key, value);
+                size++;
+            }
+            else 
+                putHelper(node.left, key, value);
+        }
+        else if (k.compareTo(node.key) > 0){
+           if (node.right== null){
+                node.right = new Node(key, value);
+                size++;
+            }
+            else 
+                putHelper(node.right, key, value);
+        } else {
+             //must be equal
+            V prevVal = node.value;
+            node.value = value;
+            return prevVal;
+        }
+
+        return null; 
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends V> map) {
+        for (Map.Entry<? extends K, ? extends V> entry: map.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public V remove(Object key) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public Collection<V> values() {
+        Set<V> set = new HashSet<V>();
+        Deque<Node> stack = new LinkedList<Node>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            Node node = stack.pop();
+            if (node == null) continue;
+            set.add(node.value);
+            stack.push(node.left);
+            stack.push(node.right);
+        }
+        return set;
+    }
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        Map<String, Integer> map = new MyTreeMap<String, Integer>();
+        map.put("Word1", 1);
+        map.put("Word2", 2);
+        Integer value = map.get("Word1");
+        System.out.println(value);
+
+        for (String key: map.keySet()) {
+            System.out.println(key + ", " + map.get(key));
+        }
+    }
+
+    /**
+     * Makes a node.
+     * 
+     * This is only here for testing purposes.  Should not be used otherwise.
+     * 
+     * @param key
+     * @param value
+     * @return
+     */
+    public MyTreeMap<K, V>.Node makeNode(K key, V value) {
+        return new Node(key, value);
+    }
+
+    /**
+     * Sets the instance variables.
+     * 
+     * This is only here for testing purposes.  Should not be used otherwise.
+     * 
+     * @param node
+     * @param size
+     */
+    public void setTree(Node node, int size ) {
+        this.root = node;
+        this.size = size;
+    }
+
+    /**
+     * Returns the height of the tree.
+     * 
+     * This is only here for testing purposes.  Should not be used otherwise.
+     * 
+     * @return
+     */
+    public int height() {
+        return heightHelper(root);
+    }
+
+    private int heightHelper(Node node) {
+        if (node == null) {
+            return 0;
+        }
+        int left = heightHelper(node.left);
+        int right = heightHelper(node.right);
+        return Math.max(left, right) + 1;
+    }
 }
